@@ -4,6 +4,9 @@ import Items.*;
 import Parser.*;
 import Parser.DOM.CustomDOMParser;
 import Parser.SAX.CustomSAXParser;
+import Parser.ToHTMLParser.CustomToHTMLParser;
+import Parser.ToHTMLParser.ToHTMLParser;
+import Parser.ToHTMLParser.ToXMLParser;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -22,6 +25,7 @@ import javafx.stage.Stage;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -63,7 +67,6 @@ public class Window {
         stage.setScene(scene);
         stage.show();
     }
-
     private static void setLayout(BorderPane borderPane){
         ToolBar toolBar = new ToolBar();
         borderPane.setTop(toolBar);
@@ -88,6 +91,10 @@ public class Window {
 
         Button reset = new Button("Reset");
         Button show = new Button("Show");
+        Button toHTML = new Button("Convert to HTML");
+        setToHTML(toHTML);
+        Button toXML = new Button("Convert to XML");
+        setToXML(toXML);
 
         show.setOnAction(e -> updateDataView(dataView));
 
@@ -137,9 +144,76 @@ public class Window {
             case PRACTICANTS -> controls.getChildren().addAll(chooseFieldsOfStudyText, chooseFieldsOfStudy, chooseDegreeText, chooseDegree);
         }
 
-        controls.getChildren().addAll(reset, show);
+        controls.getChildren().addAll(reset, show, toHTML, toXML);
     }
+    private static void setToXML(Button toXML){
+        toXML.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                String settingParser = switch (currentState){
+                    case CLASSES -> "classes";
+                    case LECTURERS -> "lecturers";
+                    case PRACTICANTS -> "practicants";
+                    default -> throw new RuntimeException("Unrecognizable specification!");
+                };
+                List<Item> itemList = parseSearch(new CustomSAXParser(), settingParser);
 
+                List<Item> result = new ArrayList<>();
+                if(currentState == State.CLASSES){
+                    for(int i = 0; i < itemList.size(); i++){
+                        StudyClass studyClass = (StudyClass) itemList.get(i);
+                        if(validateClass(studyClass))
+                            result.add(studyClass);
+                    }
+                }else{
+                    for(int i = 0; i < itemList.size(); i++){
+                        Scientist scientist = (Scientist) itemList.get(i);
+                        if(validateScientist(scientist))
+                            result.add(scientist);
+                    }
+                }
+
+                ToXMLParser parser = new ToXMLParser();
+                parser.parse(result, currentState == State.CLASSES ? "classes" : "scientists");
+            }
+        });
+    }
+    private static void setToHTML(Button toHTML){
+        toHTML.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent actionEvent) {
+                String settingParser = switch (currentState){
+                    case CLASSES -> "classes";
+                    case LECTURERS -> "lecturers";
+                    case PRACTICANTS -> "practicants";
+                    default -> throw new RuntimeException("Unrecognizable specification!");
+                };
+                List<Item> itemList = parseSearch(new CustomSAXParser(), settingParser);
+
+                List<Item> result = new ArrayList<>();
+                if(currentState == State.CLASSES){
+                    for(int i = 0; i < itemList.size(); i++){
+                        StudyClass studyClass = (StudyClass) itemList.get(i);
+                        if(validateClass(studyClass))
+                            result.add(studyClass);
+                    }
+                }else{
+                    for(int i = 0; i < itemList.size(); i++){
+                        Scientist scientist = (Scientist) itemList.get(i);
+                        if(validateScientist(scientist))
+                            result.add(scientist);
+                    }
+                }
+
+                ToHTMLParser parser = new ToHTMLParser();
+                try {
+                    parser.parse(result, currentState == State.CLASSES ? "classes" : "scientists");
+                } catch (TransformerException | IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+    }
     private static void setChooseDegree(ComboBox<String> comboBox){
         List<Item> scientists;
 
@@ -180,7 +254,6 @@ public class Window {
             }
         });
     }
-
     private static void setChooseFieldsOfStudy(ComboBox<String> comboBox){
         List<Item> lecturers;
         if(currentSetting.parser.equals("SAX"))
@@ -212,12 +285,10 @@ public class Window {
             }
         });
     }
-
     private static void resetSetOnAction(){
         //TODO: make an adequate reset
         //currentState = State.DEFAULT;
     }
-
     private static void updateDataView(ScrollPane dataView){
         VBox pane = new VBox(20);
         dataView.setContent(pane);
@@ -228,7 +299,6 @@ public class Window {
             case PRACTICANTS -> updatePracticants(pane);
         }
     }
-
     private static void drawScientist(VBox vBox, List<Item> itemList){
         for(Item item : itemList){
             Scientist lecturer = (Scientist) item;
@@ -256,8 +326,6 @@ public class Window {
             }
         }
     }
-
-
     private static void loadChanges(){
         try {
             FileInputStream fileInputStream = new FileInputStream("src/main/resources/settings.txt");
@@ -283,8 +351,6 @@ public class Window {
 
         drawScientist(vBox, itemList);
     }
-
-
     private static void updatePracticants(VBox vBox){
 
         List<Item> itemList;
@@ -376,7 +442,6 @@ public class Window {
 
         return isOpen || currentSetting.daysOpen.size() == 0;
     }
-
     private static List<Item> parseSearch(Parser parser, String expression){
         try {
             return parser.parse(expression);
