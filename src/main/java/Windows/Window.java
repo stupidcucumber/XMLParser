@@ -168,7 +168,11 @@ public class Window {
         });
     }
     private static void setToHTML(Button toHTML){
+
         toHTML.setOnAction(actionEvent -> {
+            //TODO: Add catching exception on the first steps of
+            loadChanges();
+
             String settingParser = switch (currentState){
                 case CLASSES -> "classes";
                 case LECTURERS -> "lecturers";

@@ -1,6 +1,7 @@
 package Parser.ToHTMLParser;
 
 import Items.Item;
+import Items.Scientist;
 import Items.StudyClass;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -95,6 +96,32 @@ public class CustomToHTMLConverter implements ConverterToHTML{
     }
 
     private void marshallScientist(List<Item> items){
+        Element html = parsedXMLQuery.createElement("html");
 
+        Element head = parsedXMLQuery.createElement("head");
+        Element title = parsedXMLQuery.createElement("title");
+        title.setTextContent("Scientists");
+        head.appendChild(title);
+        html.appendChild(head);
+
+        Element body = parsedXMLQuery.createElement("body");
+        for(Item item : items){
+            Scientist scientist = (Scientist) item;
+
+            Element header = parsedXMLQuery.createElement("h2");
+            header.setTextContent(scientist.getName());
+            body.appendChild(header);
+
+            Element degree = parsedXMLQuery.createElement("p");
+            degree.setTextContent("Degree: " + scientist.getDegree());
+            body.appendChild(degree);
+
+            Element fields = parsedXMLQuery.createElement("p");
+            fields.setTextContent("Fields of Study: " + scientist.getFieldsOfStudy());
+            body.appendChild(fields);
+        }
+
+        html.appendChild(body);
+        parsedXMLQuery.appendChild(html);
     }
 }

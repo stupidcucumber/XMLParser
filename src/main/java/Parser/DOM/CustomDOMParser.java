@@ -4,16 +4,10 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import Items.Lecturer;
-import Items.Practicant;
-import Items.StudyClass;
+import Items.*;
 import org.w3c.dom.*;
-import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
-import org.xml.sax.helpers.*;
 
-import Items.Item;
 import Parser.Parser;
 
 import java.io.File;
@@ -63,41 +57,11 @@ public class CustomDOMParser implements Parser {
 
                 // Searching for lecturers
                 NodeList lecturerList = ((Element) positions).getElementsByTagName("lecturer");
-                for(int j = 0; j < lecturerList.getLength(); j++){
-                    Node itemLecturer = lecturerList.item(j);
-
-                    if(itemLecturer.getNodeType() == Node.ELEMENT_NODE){
-                        Lecturer lecturer = new Lecturer();
-                        Element lecturerElement = (Element) itemLecturer;
-
-                        lecturer.setId(lecturerElement.getAttribute("id"));
-                        lecturer.setName(lecturerElement.getElementsByTagName("credentials").item(0).getTextContent());
-                        lecturer.setDegree(lecturerElement.getElementsByTagName("degree").item(0).getTextContent());
-                        lecturer.setFieldsOfStudy(lecturerElement.getElementsByTagName("fields").item(0).getTextContent());
-                        if(!lecturers.contains(lecturer))
-                            lecturers.add(lecturer);
-                    }
-                }
+                searchingForScientist(lecturers, lecturerList, "lecturer");
 
                 // Searching for practicants
                 NodeList practicantList = ((Element) positions).getElementsByTagName("practicant");
-                for(int j = 0; j < practicantList.getLength(); j++){
-                    Node itemPracticant = practicantList.item(j);
-
-                    if(itemPracticant.getNodeType() == Node.ELEMENT_NODE){
-                        Practicant practicant = new Practicant();
-
-                        Element practicantElement = (Element) itemPracticant;
-
-                        practicant.setId(practicantElement.getAttribute("id"));
-                        practicant.setName(practicantElement.getElementsByTagName("credentials").item(0).getTextContent());
-                        practicant.setDegree(practicantElement.getElementsByTagName("degree").item(0).getTextContent());
-                        practicant.setFieldsOfStudy(practicantElement.getElementsByTagName("fields").item(0).getTextContent());
-                        if(!practicants.contains(practicant))
-                            practicants.add(practicant);
-                    }
-
-                }
+                searchingForScientist(practicants, practicantList, "practicant");
 
                 studyClass.setLecturers(lecturers);
                 studyClass.setPracticants(practicants);
@@ -124,22 +88,7 @@ public class CustomDOMParser implements Parser {
 
                 // Searching for lecturers
                 NodeList lecturerList = ((Element) positions).getElementsByTagName("lecturer");
-                for (int j = 0; j < lecturerList.getLength(); j++) {
-                    Node itemLecturer = lecturerList.item(j);
-
-                    if (itemLecturer.getNodeType() == Node.ELEMENT_NODE) {
-                        Lecturer lecturer = new Lecturer();
-                        Element lecturerElement = (Element) itemLecturer;
-
-                        lecturer.setId(lecturerElement.getAttribute("id"));
-                        lecturer.setName(lecturerElement.getElementsByTagName("credentials").item(0).getTextContent());
-                        lecturer.setDegree(lecturerElement.getElementsByTagName("degree").item(0).getTextContent());
-                        lecturer.setFieldsOfStudy(lecturerElement.getElementsByTagName("fields").item(0).getTextContent());
-
-                        if(!result.contains(lecturer))
-                            result.add(lecturer);
-                    }
-                }
+                searchingForScientist(result, lecturerList, "lecturer");
             }
         }
 
@@ -161,28 +110,30 @@ public class CustomDOMParser implements Parser {
 
                 // Searching for practicants
                 NodeList practicantList = ((Element) positions).getElementsByTagName("practicant");
-                for(int j = 0; j < practicantList.getLength(); j++){
-                    Node itemPracticant = practicantList.item(j);
-
-                    if(itemPracticant.getNodeType() == Node.ELEMENT_NODE){
-                        Practicant practicant = new Practicant();
-
-                        Element practicantElement = (Element) itemPracticant;
-
-                        practicant.setId(practicantElement.getAttribute("id"));
-                        practicant.setName(practicantElement.getElementsByTagName("credentials").item(0).getTextContent());
-                        practicant.setDegree(practicantElement.getElementsByTagName("degree").item(0).getTextContent());
-                        practicant.setFieldsOfStudy(practicantElement.getElementsByTagName("fields").item(0).getTextContent());
-
-                        if(!result.contains(practicant))
-                            result.add(practicant);
-                    }
-                }
+                searchingForScientist(result, practicantList, "practicant");
             }
         }
 
         return result;
     }
 
+    private <T extends Item> void  searchingForScientist(List<T> result, NodeList practicantList, String specification){
+        for(int j = 0; j < practicantList.getLength(); j++){
+            Node itemPracticant = practicantList.item(j);
 
+            if(itemPracticant.getNodeType() == Node.ELEMENT_NODE){
+                Scientist scientist = (specification.equals("practicant") ? new Practicant() : new Lecturer());
+
+                Element practicantElement = (Element) itemPracticant;
+
+                scientist.setId(practicantElement.getAttribute("id"));
+                scientist.setName(practicantElement.getElementsByTagName("credentials").item(0).getTextContent());
+                scientist.setDegree(practicantElement.getElementsByTagName("degree").item(0).getTextContent());
+                scientist.setFieldsOfStudy(practicantElement.getElementsByTagName("fields").item(0).getTextContent());
+
+                if(!result.contains(scientist))
+                    result.add((T) scientist);
+            }
+        }
+    }
 }

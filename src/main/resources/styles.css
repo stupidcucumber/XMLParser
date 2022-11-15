@@ -1,0 +1,20 @@
+table{
+    border-collapse: collapse;
+    border: 1px solid black;
+    align-self: center;
+
+    margin-left: auto;
+    margin-right: auto;
+}
+
+tr:nth-child(even){
+    background-color: #E5E4E2;
+}
+
+td, th{
+    padding: 10px;
+}
+
+thead td{
+    font-weight: bold;
+}

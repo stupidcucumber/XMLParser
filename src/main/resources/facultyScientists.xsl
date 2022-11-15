@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<!--
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <xsl:template match="/">
         <html>
@@ -15,5 +16,39 @@
                 </xsl:for-each>
             </body>
         </html>
+    </xsl:template>
+</xsl:stylesheet>
+-->
+<xsl:stylesheet version="1.0"
+                xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
+    <xsl:output omit-xml-declaration="yes" indent="yes"/>
+
+    <xsl:template match="/*">
+        <html>
+            <head>
+                <title>Scientists</title>
+                <link href="styles.css" rel="stylesheet" media="all" />
+            </head>
+            <body style="text-alignment: center;">
+                <table><xsl:apply-templates select="scientist"/></table>
+            </body>
+        </html>
+    </xsl:template>
+
+    <xsl:template match="scientist[1]">
+        <tr><xsl:apply-templates select="*" mode="header"/></tr>
+        <xsl:call-template name="standardRow"/>
+    </xsl:template>
+
+    <xsl:template match="scientist" name="standardRow">
+        <tr><xsl:apply-templates select="*"/></tr>
+    </xsl:template>
+
+    <xsl:template match="scientist/*">
+        <td><xsl:apply-templates select="node()"/></td>
+    </xsl:template>
+
+    <xsl:template match="scientist/*" mode="header">
+        <th><xsl:value-of select="name()"/></th>
     </xsl:template>
 </xsl:stylesheet>
