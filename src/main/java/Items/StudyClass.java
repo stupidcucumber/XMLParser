@@ -51,6 +51,21 @@ public class StudyClass extends Item {
         return practicants;
     }
 
+    public String listOfPracticantsToString(){
+        StringBuilder stringBuilder = new StringBuilder();
+        for(Practicant practicant : practicants)
+            stringBuilder.append(practicant.getName()).append(" ");
+
+        return stringBuilder.toString();
+    }
+
+    public String listOfLecturersToString(){
+        StringBuilder stringBuilder = new StringBuilder();
+        for(Lecturer lecturer : lecturers)
+            stringBuilder.append(lecturer.getName()).append(" ");
+
+        return stringBuilder.toString();
+    }
 
     @Override
     public String toString() {

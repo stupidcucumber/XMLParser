@@ -4,13 +4,10 @@ import Items.*;
 import Parser.*;
 import Parser.DOM.CustomDOMParser;
 import Parser.SAX.CustomSAXParser;
-import Parser.ToHTMLParser.CustomToHTMLParser;
-import Parser.ToHTMLParser.ToHTMLParser;
+import Parser.ToHTMLParser.ConverterToHTML;
+import Parser.ToHTMLParser.CustomToHTMLConverter;
+import Parser.ToHTMLParser.ToHTMLConverter;
 import Parser.ToHTMLParser.ToXMLParser;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 
 import javafx.geometry.Pos;
@@ -25,7 +22,6 @@ import javafx.stage.Stage;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.TransformerException;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -50,13 +46,10 @@ public class Window {
         setLayout(defaultControls);
 
         sceneControl.getItems().addAll(State.CLASSES, State.LECTURERS, State.PRACTICANTS);
-        sceneControl.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-                currentSetting = new Setting();
-                currentState = sceneControl.getSelectionModel().getSelectedItem();
-                setLayout(defaultControls);
-            }
+        sceneControl.setOnAction(actionEvent -> {
+            currentSetting = new Setting();
+            currentState = sceneControl.getSelectionModel().getSelectedItem();
+            setLayout(defaultControls);
         });
 
         // Making final actions with stage node
@@ -111,14 +104,11 @@ public class Window {
 
             String dayName = daysNames[i];
             days[i] = new CheckBox(dayName);
-            days[i].selectedProperty().addListener(new ChangeListener<Boolean>() {
-                @Override
-                public void changed(ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean t1) {
-                    if(t1)
-                        currentSetting.daysOpen.add(dayName);
-                    else
-                        currentSetting.daysOpen.remove(dayName);
-                }
+            days[i].selectedProperty().addListener((observableValue, aBoolean, t1) -> {
+                if(t1)
+                    currentSetting.daysOpen.add(dayName);
+                else
+                    currentSetting.daysOpen.remove(dayName);
             });
         }
 
@@ -140,78 +130,71 @@ public class Window {
                 for(CheckBox checkBox : days)
                     controls.getChildren().add(checkBox);
             }
-            case LECTURERS -> controls.getChildren().addAll(chooseFieldsOfStudyText, chooseFieldsOfStudy, chooseDegreeText, chooseDegree);
-            case PRACTICANTS -> controls.getChildren().addAll(chooseFieldsOfStudyText, chooseFieldsOfStudy, chooseDegreeText, chooseDegree);
+            case LECTURERS -> controls.getChildren().addAll(chooseFieldsOfStudyText, chooseFieldsOfStudy,
+                    chooseDegreeText, chooseDegree);
+            case PRACTICANTS -> controls.getChildren().addAll(chooseFieldsOfStudyText, chooseFieldsOfStudy,
+                    chooseDegreeText, chooseDegree);
         }
 
         controls.getChildren().addAll(reset, show, toHTML, toXML);
     }
     private static void setToXML(Button toXML){
-        toXML.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-                String settingParser = switch (currentState){
-                    case CLASSES -> "classes";
-                    case LECTURERS -> "lecturers";
-                    case PRACTICANTS -> "practicants";
-                    default -> throw new RuntimeException("Unrecognizable specification!");
-                };
-                List<Item> itemList = parseSearch(new CustomSAXParser(), settingParser);
+        toXML.setOnAction(actionEvent -> {
+            String settingParser = switch (currentState){
+                case CLASSES -> "classes";
+                case LECTURERS -> "lecturers";
+                case PRACTICANTS -> "practicants";
+                default -> throw new RuntimeException("Unrecognizable specification!");
+            };
+            List<Item> itemList = parseSearch(new CustomSAXParser(), settingParser);
 
-                List<Item> result = new ArrayList<>();
-                if(currentState == State.CLASSES){
-                    for(int i = 0; i < itemList.size(); i++){
-                        StudyClass studyClass = (StudyClass) itemList.get(i);
-                        if(validateClass(studyClass))
-                            result.add(studyClass);
-                    }
-                }else{
-                    for(int i = 0; i < itemList.size(); i++){
-                        Scientist scientist = (Scientist) itemList.get(i);
-                        if(validateScientist(scientist))
-                            result.add(scientist);
-                    }
+            List<Item> result = new ArrayList<>();
+            if(currentState == State.CLASSES){
+                for (Item item : itemList) {
+                    StudyClass studyClass = (StudyClass) item;
+                    if (validateClass(studyClass))
+                        result.add(studyClass);
                 }
-
-                ToXMLParser parser = new ToXMLParser();
-                parser.parse(result, currentState == State.CLASSES ? "classes" : "scientists");
+            }else{
+                for (Item item : itemList) {
+                    Scientist scientist = (Scientist) item;
+                    if (validateScientist(scientist))
+                        result.add(scientist);
+                }
             }
+
+            ToXMLParser parser = new ToXMLParser();
+            parser.parse(result, currentState == State.CLASSES ? "classes" : "scientists");
         });
     }
     private static void setToHTML(Button toHTML){
-        toHTML.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-                String settingParser = switch (currentState){
-                    case CLASSES -> "classes";
-                    case LECTURERS -> "lecturers";
-                    case PRACTICANTS -> "practicants";
-                    default -> throw new RuntimeException("Unrecognizable specification!");
-                };
-                List<Item> itemList = parseSearch(new CustomSAXParser(), settingParser);
+        toHTML.setOnAction(actionEvent -> {
+            String settingParser = switch (currentState){
+                case CLASSES -> "classes";
+                case LECTURERS -> "lecturers";
+                case PRACTICANTS -> "practicants";
+                default -> throw new RuntimeException("Unrecognizable specification!");
+            };
+            List<Item> itemList = parseSearch(new CustomSAXParser(), settingParser);
 
-                List<Item> result = new ArrayList<>();
-                if(currentState == State.CLASSES){
-                    for(int i = 0; i < itemList.size(); i++){
-                        StudyClass studyClass = (StudyClass) itemList.get(i);
-                        if(validateClass(studyClass))
-                            result.add(studyClass);
-                    }
-                }else{
-                    for(int i = 0; i < itemList.size(); i++){
-                        Scientist scientist = (Scientist) itemList.get(i);
-                        if(validateScientist(scientist))
-                            result.add(scientist);
-                    }
+            List<Item> result = new ArrayList<>();
+            if(currentState == State.CLASSES){
+                for (Item item : itemList) {
+                    StudyClass studyClass = (StudyClass) item;
+                    if (validateClass(studyClass))
+                        result.add(studyClass);
                 }
-
-                ToHTMLParser parser = new ToHTMLParser();
-                try {
-                    parser.parse(result, currentState == State.CLASSES ? "classes" : "scientists");
-                } catch (TransformerException | IOException e) {
-                    throw new RuntimeException(e);
+            }else{
+                for (Item item : itemList) {
+                    Scientist scientist = (Scientist) item;
+                    if (validateScientist(scientist))
+                        result.add(scientist);
                 }
             }
+
+            ConverterToHTML converterToHTML = (currentSetting.converter.equals("KI HTML Converter") ?
+                    new ToHTMLConverter() : new CustomToHTMLConverter());
+            convertToHTML(converterToHTML, result, currentState == State.CLASSES ? "classes" : "scientists");
         });
     }
     private static void setChooseDegree(ComboBox<String> comboBox){
@@ -243,14 +226,11 @@ public class Window {
             comboBox.getItems().add(degree);
         }
 
-        comboBox.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-                currentSetting.degree.clear();
-                if(!comboBox.getSelectionModel().isSelected(0)){
-                    if(!currentSetting.degree.contains(comboBox.getSelectionModel().getSelectedItem()))
-                        currentSetting.degree.add(comboBox.getSelectionModel().getSelectedItem());
-                }
+        comboBox.setOnAction(actionEvent -> {
+            currentSetting.degree.clear();
+            if(!comboBox.getSelectionModel().isSelected(0)){
+                if(!currentSetting.degree.contains(comboBox.getSelectionModel().getSelectedItem()))
+                    currentSetting.degree.add(comboBox.getSelectionModel().getSelectedItem());
             }
         });
     }
@@ -275,14 +255,11 @@ public class Window {
             comboBox.getItems().add(field);
         }
 
-        comboBox.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-                currentSetting.fieldsOfStudy.clear();
-                if(!currentSetting.fieldsOfStudy.contains(comboBox.getSelectionModel().getSelectedItem()) &&
-                !comboBox.getSelectionModel().isSelected(0))
-                    currentSetting.fieldsOfStudy.add(comboBox.getSelectionModel().getSelectedItem());
-            }
+        comboBox.setOnAction(actionEvent -> {
+            currentSetting.fieldsOfStudy.clear();
+            if(!currentSetting.fieldsOfStudy.contains(comboBox.getSelectionModel().getSelectedItem()) &&
+            !comboBox.getSelectionModel().isSelected(0))
+                currentSetting.fieldsOfStudy.add(comboBox.getSelectionModel().getSelectedItem());
         });
     }
     private static void resetSetOnAction(){
@@ -333,6 +310,7 @@ public class Window {
             while (scanner.hasNextLine()){
                 currentSetting.parser = scanner.nextLine();
                 FONT_SIZE = Integer.parseInt(scanner.nextLine());
+                currentSetting.converter = scanner.nextLine();
             }
 
         } catch (FileNotFoundException e) {
@@ -448,5 +426,8 @@ public class Window {
         } catch (ParserConfigurationException | IOException | SAXException e) {
             throw new RuntimeException(e);
         }
+    }
+    private static void convertToHTML(ConverterToHTML converterToHTML, List<Item> itemList, String specification){
+        converterToHTML.convert(itemList, specification);
     }
 }

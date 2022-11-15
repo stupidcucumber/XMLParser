@@ -34,6 +34,7 @@ public class ToXMLParser {
         DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
         parsedXML = documentBuilder.newDocument();
 
+
         switch (specification){
             case "classes" -> marshallClasses(items);
             case "scientists" -> marshallScientist(items);
@@ -45,6 +46,8 @@ public class ToXMLParser {
         transformerFactory.setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "");
 
         Writer output = new StringWriter();
+
+        parsedXML.normalize();
         Transformer transformer = transformerFactory.newTransformer();
         transformer.transform(new DOMSource(parsedXML), new StreamResult(output));
 
@@ -80,11 +83,11 @@ public class ToXMLParser {
             studyClassElement.appendChild(classDescription);
 
             Element classLecturers = parsedXML.createElement("lecturers");
-            classLecturers.setTextContent("lecturers");
+            classLecturers.setTextContent(studyClass.listOfLecturersToString());
             studyClassElement.appendChild(classLecturers);
 
             Element classPracticants = parsedXML.createElement("practicants");
-            classPracticants.setTextContent("practicants");
+            classPracticants.setTextContent(studyClass.listOfPracticantsToString());
             studyClassElement.appendChild(classPracticants);
 
             classes.appendChild(studyClassElement);

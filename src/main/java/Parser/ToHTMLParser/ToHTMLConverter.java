@@ -12,8 +12,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-public class ToHTMLParser {
-    public void parse(List<Item> itemList, String specification) throws TransformerException, IOException {
+public class ToHTMLConverter implements ConverterToHTML {
+    public void convert(List<Item> itemList, String specification) {
         ToXMLParser toXMLParser = new ToXMLParser();
         toXMLParser.parse(itemList, specification);
 
@@ -23,16 +23,30 @@ public class ToHTMLParser {
             template = new File("src/main/resources/facultyClasses.xsl");
         else
             template = new File("src/main/resources/facultyScientists.xsl");
-        Transformer transformer = transformerFactory.newTransformer(new StreamSource(template));
+        Transformer transformer = null;
+        try {
+            transformer = transformerFactory.newTransformer(new StreamSource(template));
+        } catch (TransformerConfigurationException e) {
+            throw new RuntimeException(e);
+        }
 
         StreamSource streamSource = new StreamSource("queryXML.xml");
         File result = new File("query.html");
-        if(!result.exists())
-            result.createNewFile();
+        if(!result.exists()) {
+            try {
+                result.createNewFile();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
         StreamResult streamResult = new StreamResult(result);
 
-        transformer.transform(streamSource, streamResult);
+        try {
+            transformer.transform(streamSource, streamResult);
+        } catch (TransformerException e) {
+            throw new RuntimeException(e);
+        }
 
         System.out.println("Done.");
     }

@@ -1,8 +1,6 @@
 package Parser.ToHTMLParser;
 
 import Items.Item;
-import Items.Lecturer;
-import Items.Practicant;
 import Items.StudyClass;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -19,14 +17,11 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.util.List;
 
-public class CustomToHTMLParser {
+public class CustomToHTMLConverter implements ConverterToHTML{
 
     private Document parsedXMLQuery;
-    private void unmarshalling(){
 
-    }
-
-    public void parse(List<Item> itemList, String specifier){
+    public void convert(List<Item> itemList, String specifier){
         try {
             marshall(itemList, specifier);
         } catch (ParserConfigurationException | TransformerException | IOException e) {
@@ -59,7 +54,7 @@ public class CustomToHTMLParser {
         FileOutputStream fileOutputStream = new FileOutputStream(file);
         PrintWriter printWriter = new PrintWriter(fileOutputStream);
 
-        printWriter.println(output.toString());
+        printWriter.println(output);
         printWriter.flush();
 
         fileOutputStream.close();
@@ -75,8 +70,8 @@ public class CustomToHTMLParser {
         html.appendChild(head);
 
         Element body = parsedXMLQuery.createElement("body");
-        for(int i = 0 ; i < items.size(); i++){
-            StudyClass studyClass = (StudyClass) items.get(i);
+        for (Item item : items) {
+            StudyClass studyClass = (StudyClass) item;
 
             Element header = parsedXMLQuery.createElement("h2");
             header.setTextContent(studyClass.getName());
@@ -87,34 +82,16 @@ public class CustomToHTMLParser {
             body.appendChild(paragraph);
 
             Element lecturers = parsedXMLQuery.createElement("p");
-            lecturers.setTextContent("Lecturers: " + formatLecturersList(studyClass.getLecturers()));
+            lecturers.setTextContent("Lecturers: " + studyClass.listOfLecturersToString());
             body.appendChild(lecturers);
 
             Element practicants = parsedXMLQuery.createElement("p");
-            practicants.setTextContent("Practicants: " + formatPracticantsList(studyClass.getPracticants()));
+            practicants.setTextContent("Practicants: " + studyClass.listOfPracticantsToString());
             body.appendChild(practicants);
         }
 
         html.appendChild(body);
         parsedXMLQuery.appendChild(html);
-    }
-
-    private String formatPracticantsList(List<Practicant> practicants){
-        StringBuilder stringBuilder = new StringBuilder();
-        for(Practicant practicant : practicants){
-            stringBuilder.append(practicant.getName()).append(" ");
-        }
-
-        return stringBuilder.toString();
-    }
-
-    private String formatLecturersList(List<Lecturer> lecturers){
-        StringBuilder stringBuilder = new StringBuilder();
-        for (Lecturer lecturer : lecturers){
-            stringBuilder.append(lecturer.getName()).append(" ");
-        }
-
-        return stringBuilder.toString();
     }
 
     private void marshallScientist(List<Item> items){

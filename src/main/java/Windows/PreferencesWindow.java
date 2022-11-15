@@ -1,7 +1,5 @@
 package Windows;
 
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -18,6 +16,7 @@ public class PreferencesWindow {
     private static final String PATH_TO_SETTINGS_FILE = "src/main/resources/settings.txt";
     private static ComboBox<String> stringComboBoxChooseFontSize;
     private static ComboBox<String> comboBox;
+    private static ComboBox<String> chooseHTMLConverterComboBox;
     public static void launch(){
         Stage stage = new Stage();
         stage.setWidth(500);
@@ -52,6 +51,11 @@ public class PreferencesWindow {
         setStringComboBoxChooseFontSize(stringComboBoxChooseFontSize);
         controls.getChildren().addAll(chooseFontSize, stringComboBoxChooseFontSize);
 
+        Text chooseHTMLConverter = new Text("Choose HTML converter: ");
+        chooseHTMLConverterComboBox = new ComboBox<>();
+        setChooseHTMLConverterComboBox(chooseHTMLConverterComboBox);
+        controls.getChildren().addAll(chooseHTMLConverter, chooseHTMLConverterComboBox);
+
         try {
             loadChanges();
         } catch (FileNotFoundException e) {
@@ -82,46 +86,47 @@ public class PreferencesWindow {
             while (scanner.hasNextLine()){
                 String parser = scanner.nextLine();
                 String font = scanner.nextLine();
-
+                String converter = scanner.nextLine();
 
                 comboBox.getSelectionModel().select(parser);
                 stringComboBoxChooseFontSize.getSelectionModel().select(font);
+                chooseHTMLConverterComboBox.getSelectionModel().select(converter);
             }
         }
     }
 
     private static void setSave(Button button){
-        button.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent actionEvent) {
-                String preferredParser = comboBox.getSelectionModel().getSelectedItem();
-                String preferredFont = stringComboBoxChooseFontSize.getSelectionModel().getSelectedItem();
+        button.setOnAction(actionEvent -> {
+            String preferredParser = comboBox.getSelectionModel().getSelectedItem();
+            String preferredFont = stringComboBoxChooseFontSize.getSelectionModel().getSelectedItem();
+            String preferredConverter = chooseHTMLConverterComboBox.getSelectionModel().getSelectedItem();
 
-                File file = new File(PATH_TO_SETTINGS_FILE);
-                if(!file.exists()) {
-                    try {
-                        file.createNewFile();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-
+            File file = new File(PATH_TO_SETTINGS_FILE);
+            if(!file.exists()) {
                 try {
-                    file.delete();
                     file.createNewFile();
-
-                    PrintWriter printWriter = new PrintWriter(file);
-
-                    printWriter.println(preferredParser);
-                    printWriter.flush();
-                    printWriter.println(preferredFont);
-                    printWriter.flush();
-
-                } catch (IOException e ) {
+                } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
-
             }
+
+            try {
+                file.delete();
+                file.createNewFile();
+
+                PrintWriter printWriter = new PrintWriter(file);
+
+                printWriter.println(preferredParser);
+                printWriter.flush();
+                printWriter.println(preferredFont);
+                printWriter.flush();
+                printWriter.println(preferredConverter);
+                printWriter.flush();
+
+            } catch (IOException e ) {
+                throw new RuntimeException(e);
+            }
+
         });
     }
 
@@ -133,6 +138,7 @@ public class PreferencesWindow {
         button.setOnAction(e -> {
             comboBox.getSelectionModel().selectFirst();
             stringComboBoxChooseFontSize.getSelectionModel().selectFirst();
+            chooseHTMLConverterComboBox.getSelectionModel().select("KI HTML Converter");
             File file = new File(PATH_TO_SETTINGS_FILE);
 
             file.delete();
@@ -144,12 +150,18 @@ public class PreferencesWindow {
 
             try {
                 PrintWriter printWriter = new PrintWriter(file);
+
                 printWriter.println(comboBox.getSelectionModel().getSelectedItem());
                 printWriter.println(stringComboBoxChooseFontSize.getSelectionModel().getSelectedItem());
+                printWriter.println(chooseHTMLConverterComboBox.getSelectionModel().getSelectedItem());
             } catch (FileNotFoundException ex) {
                 throw new RuntimeException(ex);
             }
         });
+    }
+
+    private static void setChooseHTMLConverterComboBox(ComboBox<String> comboBox){
+        comboBox.getItems().addAll("Custom HTML converter", "KI HTML Converter");
     }
 
     private static void setStringComboBoxChooseFontSize(ComboBox<String> comboBox){
