@@ -1,11 +1,13 @@
 ### Structure of the project
 
-``` bash
-.
-├── README.txt
+``` bash.
+├── LICENSE
+├── README.md
 ├── mvnw
 ├── mvnw.cmd
 ├── pom.xml
+├── query.html
+├── queryXML.xml
 └── src
     └── main
         ├── java
@@ -22,7 +24,12 @@
         │   │   ├── SAX
         │   │   │   ├── CustomSAXParser.java
         │   │   │   └── SAXHandler.java
-        │   │   └── Setting.java
+        │   │   ├── Setting.java
+        │   │   └── ToHTMLParser
+        │   │       ├── ConverterToHTML.java
+        │   │       ├── CustomToHTMLConverter.java
+        │   │       ├── ToHTMLConverter.java
+        │   │       └── ToXMLParser.java
         │   ├── Windows
         │   │   ├── CloseRequestWindow.java
         │   │   ├── InfoWindow.java
@@ -41,8 +48,11 @@
             │       └── xmlparser
             │           └── hello-view.fxml
             ├── faculty.xml
+            ├── facultyClasses.xsl
+            ├── facultyScientists.xsl
             ├── logotype.png
-            └── settings.txt
+            ├── settings.txt
+            └── styles.css
             
 ```
             
