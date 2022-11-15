@@ -1,5 +1,6 @@
-###Structure of the project
-```
+### Structure of the project
+
+``` bash
 .
 ├── README.txt
 ├── mvnw
@@ -43,7 +44,7 @@
             ├── logotype.png
             └── settings.txt
             
-            ```
+```
             
 ### Project Database
   Database contains information about classes, lecturers and practicants.
