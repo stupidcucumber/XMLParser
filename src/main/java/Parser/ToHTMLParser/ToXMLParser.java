@@ -57,7 +57,7 @@ public class ToXMLParser {
         FileOutputStream fileOutputStream = new FileOutputStream(file);
         PrintWriter printWriter = new PrintWriter(fileOutputStream);
 
-        printWriter.println(output.toString());
+        printWriter.println(output);
         printWriter.flush();
 
         fileOutputStream.close();
@@ -65,8 +65,8 @@ public class ToXMLParser {
 
     private void marshallClasses(List<Item> items){
         Element classes = parsedXML.createElement("classes");
-        for(int i = 0; i < items.size(); i++){
-            StudyClass studyClass = (StudyClass) items.get(i);
+        for (Item item : items) {
+            StudyClass studyClass = (StudyClass) item;
 
             Element studyClassElement = parsedXML.createElement("class");
 
@@ -98,8 +98,8 @@ public class ToXMLParser {
 
     private void marshallScientist(List<Item> items){
         Element scientists = parsedXML.createElement("scientists");
-        for(int i = 0; i < items.size(); i++){
-            Scientist scientist = (Scientist) items.get(i);
+        for (Item item : items) {
+            Scientist scientist = (Scientist) item;
 
             Element scientistElement = parsedXML.createElement("scientist");
 

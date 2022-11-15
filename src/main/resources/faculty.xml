@@ -153,7 +153,7 @@
             </practicant>
         </poisitions>
     </class>
-    <class name="OOP">
+    <class id="4" name="OOP">
         <description>
             Object-oriented programming (OOP) is a programming paradigm based on the concept of "objects", which can contain
             data and code: data in the form of fields (often known as attributes or properties), and code, in the form of procedures
@@ -194,7 +194,7 @@
             </practicant>
         </poisitions>
     </class>
-    <class name="Math Statistics">
+    <class id="5" name="Math Statistics">
         <description>
             Mathematical statistics is the application of probability theory, a branch of mathematics, to statistics,
             as opposed to techniques for collecting statistical data. Specific mathematical techniques which are used
@@ -223,7 +223,7 @@
             </practicant>
         </poisitions>
     </class>
-    <class name="Probability theory">
+    <class id="6" name="Probability theory">
         <description>
             Probability theory is the branch of mathematics concerned with probability. Although there are several different
             probability interpretations, probability theory treats the concept in a rigorous mathematical manner by expressing
@@ -261,7 +261,7 @@
             </practicant>
         </poisitions>
     </class>
-    <class name="Differential equations">
+    <class id="7" name="Differential equations">
         <description>
             In mathematics, a differential equation is an equation that relates one or more unknown functions and their derivatives.
             In applications, the functions generally represent physical quantities, the derivatives represent their rates of change,
@@ -292,7 +292,7 @@
             </practicant>
         </poisitions>
     </class>
-    <class name="Mathematical logic">
+    <class id="8" name="Mathematical logic">
         <description>
             Mathematical logic is the study of formal logic within mathematics. Major subareas include model theory,
             proof theory, set theory, and recursion theory. Research in mathematical logic commonly addresses the mathematical
@@ -318,7 +318,7 @@
             </practicant>
         </poisitions>
     </class>
-    <class name="System Architecture">
+    <class id="9" name="System Architecture">
         <description>
             A system architecture is the conceptual model that defines the structure, behavior, and more views of a system.
             An architecture description is a formal description and representation of a system, organized in a way that

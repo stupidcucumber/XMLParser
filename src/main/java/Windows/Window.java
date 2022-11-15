@@ -35,6 +35,21 @@ public class Window {
         LECTURERS,
         PRACTICANTS
     }
+    static class Setting {
+        public String parser;
+        public String converter;
+        public List<String> daysOpen;
+        public List<String> degree;
+        public List<String> fieldsOfStudy;
+
+        public Setting(){
+            daysOpen = new ArrayList<>();
+            degree = new ArrayList<>();
+            fieldsOfStudy = new ArrayList<>();
+            parser = "SAX";
+            converter = "KI HTML Converter";
+        }
+    }
     private static final ComboBox<State> sceneControl = new ComboBox<>();
     private static State currentState = State.DEFAULT;
     private static Setting currentSetting = new Setting();
@@ -44,13 +59,8 @@ public class Window {
         // Editing layout
         BorderPane defaultControls = new BorderPane();
         setLayout(defaultControls);
+        setOnSceneControl(defaultControls);
 
-        sceneControl.getItems().addAll(State.CLASSES, State.LECTURERS, State.PRACTICANTS);
-        sceneControl.setOnAction(actionEvent -> {
-            currentSetting = new Setting();
-            currentState = sceneControl.getSelectionModel().getSelectedItem();
-            setLayout(defaultControls);
-        });
 
         // Making final actions with stage node
         Scene scene = new Scene(defaultControls);
@@ -59,6 +69,15 @@ public class Window {
         stage.setTitle("XMLParser");
         stage.setScene(scene);
         stage.show();
+    }
+
+    private static void setOnSceneControl(BorderPane pane){
+        sceneControl.getItems().addAll(State.CLASSES, State.LECTURERS, State.PRACTICANTS);
+        sceneControl.setOnAction(actionEvent -> {
+            currentSetting = new Setting();
+            currentState = sceneControl.getSelectionModel().getSelectedItem();
+            setLayout(pane);
+        });
     }
     private static void setLayout(BorderPane borderPane){
         ToolBar toolBar = new ToolBar();
@@ -101,15 +120,9 @@ public class Window {
 
         CheckBox[] days = new CheckBox[daysNames.length];
         for(int i = 0; i < days.length; i++){
-
             String dayName = daysNames[i];
             days[i] = new CheckBox(dayName);
-            days[i].selectedProperty().addListener((observableValue, aBoolean, t1) -> {
-                if(t1)
-                    currentSetting.daysOpen.add(dayName);
-                else
-                    currentSetting.daysOpen.remove(dayName);
-            });
+            setOnChoosingDay(days[i], dayName);
         }
 
         /*
@@ -138,6 +151,15 @@ public class Window {
 
         controls.getChildren().addAll(reset, show, toHTML, toXML);
     }
+    private static void setOnChoosingDay(CheckBox checkBox, String dayName){
+        checkBox.selectedProperty().addListener((observableValue, aBoolean, t1) -> {
+            if(t1)
+                currentSetting.daysOpen.add(dayName);
+            else
+                currentSetting.daysOpen.remove(dayName);
+        });
+    }
+
     private static void setToXML(Button toXML){
         toXML.setOnAction(actionEvent -> {
             String settingParser = switch (currentState){
