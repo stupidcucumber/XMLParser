@@ -12,7 +12,7 @@ public class Test {
     public static void main(String[] args) throws ParserConfigurationException, IOException, SAXException {
         CustomDOMParser customDOMParser = new CustomDOMParser();
 
-        for (Item item : customDOMParser.parse("classes"))
-            System.out.println((StudyClass) item);
+        //for (Item item : customDOMParser.parse("classes"))
+        //    System.out.println((StudyClass) item);
     }
 }

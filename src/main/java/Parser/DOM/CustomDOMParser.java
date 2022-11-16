@@ -9,7 +9,8 @@ import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
 import Parser.Parser;
-
+import Parser.Setting;
+import Parser.Validator;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,11 +18,13 @@ import java.util.List;
 
 public class CustomDOMParser implements Parser {
     private Document document;
+    private Validator validator;
     @Override
-    public List<Item> parse(String value) throws ParserConfigurationException, IOException, SAXException {
+    public List<Item> parse(String value, Setting setting) throws ParserConfigurationException, IOException, SAXException {
         DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
         document = documentBuilder.parse(new File(PATH));
+        validator = new Validator(setting);
 
         document.getDocumentElement().normalize();
 
@@ -65,7 +68,7 @@ public class CustomDOMParser implements Parser {
 
                 studyClass.setLecturers(lecturers);
                 studyClass.setPracticants(practicants);
-                if(!result.contains(studyClass))
+                if(!result.contains(studyClass) && validator.validateClass(studyClass))
                     result.add(studyClass);
             }
         }
@@ -131,7 +134,7 @@ public class CustomDOMParser implements Parser {
                 scientist.setDegree(practicantElement.getElementsByTagName("degree").item(0).getTextContent());
                 scientist.setFieldsOfStudy(practicantElement.getElementsByTagName("fields").item(0).getTextContent());
 
-                if(!result.contains(scientist))
+                if(!result.contains(scientist) && validator.validateScientist(scientist))
                     result.add((T) scientist);
             }
         }

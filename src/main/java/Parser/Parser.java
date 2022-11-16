@@ -9,5 +9,5 @@ import java.util.List;
 
 public interface Parser {
     String PATH = "src/main/resources/faculty.xml";
-    List<Item> parse(String value) throws ParserConfigurationException, IOException, SAXException;
+    List<Item> parse(String value, Setting setting) throws ParserConfigurationException, IOException, SAXException;
 }

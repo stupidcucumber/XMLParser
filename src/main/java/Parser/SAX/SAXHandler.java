@@ -1,5 +1,6 @@
 package Parser.SAX;
 
+import Parser.Validator;
 import Items.Item;
 import Items.Lecturer;
 import Items.Practicant;
@@ -9,6 +10,7 @@ import org.xml.sax.helpers.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import Parser.Setting;
 
 public class SAXHandler extends DefaultHandler{
 
@@ -17,7 +19,7 @@ public class SAXHandler extends DefaultHandler{
         CLASSES,
         PRACTICANTS
     }
-
+    private Validator validator;
     private List<Item> items;
     private Lecturer lecturer;
     private Practicant practicant;
@@ -41,10 +43,12 @@ public class SAXHandler extends DefaultHandler{
     private boolean bNewPracticant = false;
     private boolean bDescription = false;
     private boolean bDays = false;
+    private Setting setting;
 
     private final SearchFor searchFor; // lecturers, classes, students
 
-    public SAXHandler(String specification){
+    public SAXHandler(String specification, Validator validator){
+        this.validator = validator;
         switch (specification) {
             case "lecturers" -> searchFor = SearchFor.LECTURERS;
             case "classes" -> searchFor = SearchFor.CLASSES;
@@ -139,7 +143,7 @@ public class SAXHandler extends DefaultHandler{
         }
 
         if(qName.equalsIgnoreCase("lecturer")){
-            if(!items.contains(lecturer))
+            if(!items.contains(lecturer) && validator.validateScientist(lecturer))
                 items.add(lecturer);
             isLecturer = false;
         }
@@ -210,18 +214,19 @@ public class SAXHandler extends DefaultHandler{
         }
 
         if(qName.equalsIgnoreCase("class")){
-            items.add(studyClass);
+            if(validator.validateClass(studyClass))
+                items.add(studyClass);
             isClass = false;
         }
 
         if(bNewLecturer && qName.equalsIgnoreCase("lecturer")){
-            if(!studyClass.getLecturers().contains(lecturer))
+            if(!studyClass.getLecturers().contains(lecturer) && validator.validateScientist(lecturer))
                 studyClass.getLecturers().add(lecturer);
             bNewLecturer = false;
         }
 
         if(bNewPracticant && qName.equalsIgnoreCase("practicant")){
-            if(!studyClass.getPracticants().contains(practicant))
+            if(!studyClass.getPracticants().contains(practicant) && validator.validateScientist(practicant))
                 studyClass.getPracticants().add(practicant);
             bNewPracticant = false;
         }
