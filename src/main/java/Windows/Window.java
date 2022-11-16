@@ -165,14 +165,12 @@ public class Window {
             if(currentState == State.CLASSES){
                 for (Item item : itemList) {
                     StudyClass studyClass = (StudyClass) item;
-                    if (validateClass(studyClass))
-                        result.add(studyClass);
+                    result.add(studyClass);
                 }
             }else{
                 for (Item item : itemList) {
                     Scientist scientist = (Scientist) item;
-                    if (validateScientist(scientist))
-                        result.add(scientist);
+                    result.add(scientist);
                 }
             }
 
@@ -196,24 +194,9 @@ public class Window {
             };
             List<Item> itemList = parseSearch(new CustomSAXParser(), settingParser);
 
-            List<Item> result = new ArrayList<>();
-            if(currentState == State.CLASSES){
-                for (Item item : itemList) {
-                    StudyClass studyClass = (StudyClass) item;
-                    if (validateClass(studyClass))
-                        result.add(studyClass);
-                }
-            }else{
-                for (Item item : itemList) {
-                    Scientist scientist = (Scientist) item;
-                    if (validateScientist(scientist))
-                        result.add(scientist);
-                }
-            }
-
             ConverterToHTML converterToHTML = (currentSetting.getConverter().equals("KI HTML Converter") ?
                     new ToHTMLConverter() : new CustomToHTMLConverter());
-            convertToHTML(converterToHTML, result, currentState == State.CLASSES ? "classes" : "scientists");
+            convertToHTML(converterToHTML, itemList, currentState == State.CLASSES ? "classes" : "scientists");
 
             try {
                 java.awt.Desktop.getDesktop().browse(URI.create("http://localhost:63342/XMLParser/query.html?_ijt=hrjdlei4qr8o6fmf8jbn91r93p&_ij_reload=RELOAD_ON_SAVE"));
@@ -302,7 +285,6 @@ public class Window {
         for(Item item : itemList){
             Scientist lecturer = (Scientist) item;
 
-            if(validateScientist(lecturer)){
                 TilePane tilePane = new TilePane();
                 tilePane.setTileAlignment(Pos.BASELINE_LEFT);
                 tilePane.setPrefTileWidth(200);
@@ -322,7 +304,6 @@ public class Window {
                 tilePane.getChildren().addAll(textFields, field);
 
                 vBox.getChildren().addAll(name, tilePane);
-            }
         }
     }
     private static void loadChanges(){
@@ -377,7 +358,6 @@ public class Window {
 
         for (Item item : itemList) {
             StudyClass studyClass = (StudyClass) item;
-            if(validateClass(studyClass)){
                 Text name = new Text(studyClass.getName());
                 name.setStyle("-fx-font-weight: bold; -fx-font-size: 18pt;");
 
@@ -399,52 +379,11 @@ public class Window {
                 Label practicants = new Label(practicantsStr.toString());
 
                 vBox.getChildren().addAll(name, description, lecturers, practicants, days);
-            }
         }
-    }
-    private static boolean validateScientist(Scientist scientist){
-        String[] fields = scientist.getFieldsOfStudy().split(",");
-        for(int i = 0; i < fields.length; i++){
-            fields[i] = fields[i].strip();
-            System.out.println(fields[i]);
-        }
-
-        boolean isChoosed = false;
-        for (String field : fields){
-            for(String requiredField : currentSetting.getFieldsOfStudy())
-                if(field.equals(requiredField)){
-                    isChoosed = true;
-                    break;
-                }
-        }
-
-        boolean isDegree = false;
-        for(String degree : currentSetting.getDegree())
-            if (degree.equals(scientist.getDegree())) {
-                isDegree = true;
-                break;
-            }
-
-        System.out.println(currentSetting.getFieldsOfStudy().size());
-        return (isChoosed || currentSetting.getFieldsOfStudy().size() == 0) && (isDegree || currentSetting.getDegree().size() == 0);
-    }
-    private static boolean validateClass(StudyClass studyClass){
-        String[] days = studyClass.getDaysWork().replace(" ", "").split(",");
-        boolean isOpen = false;
-        for(String requiredDays : currentSetting.getDaysOpen()){
-            for (String day : days)
-                if (requiredDays.equals(day)) {
-                    isOpen = true;
-                    break;
-                }
-        }
-
-
-        return isOpen || currentSetting.getDaysOpen().size() == 0;
     }
     private static List<Item> parseSearch(Parser parser, String expression){
         try {
-            return parser.parse(expression);
+            return parser.parse(expression, currentSetting);
         } catch (ParserConfigurationException | IOException | SAXException e) {
             throw new RuntimeException(e);
         }
