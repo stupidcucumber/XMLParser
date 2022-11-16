@@ -25,6 +25,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URI;
 import java.util.*;
 
 public class Window {
@@ -34,21 +35,6 @@ public class Window {
         CLASSES,
         LECTURERS,
         PRACTICANTS
-    }
-    static class Setting {
-        public String parser;
-        public String converter;
-        public List<String> daysOpen;
-        public List<String> degree;
-        public List<String> fieldsOfStudy;
-
-        public Setting(){
-            daysOpen = new ArrayList<>();
-            degree = new ArrayList<>();
-            fieldsOfStudy = new ArrayList<>();
-            parser = "SAX";
-            converter = "KI HTML Converter";
-        }
     }
     private static final ComboBox<State> sceneControl = new ComboBox<>();
     private static State currentState = State.DEFAULT;
@@ -64,8 +50,8 @@ public class Window {
 
         // Making final actions with stage node
         Scene scene = new Scene(defaultControls);
-        stage.setWidth(1000);
-        stage.setHeight(600);
+        stage.setWidth(1200);
+        stage.setHeight(700);
         stage.setTitle("XMLParser");
         stage.setScene(scene);
         stage.show();
@@ -91,12 +77,12 @@ public class Window {
         toolBar.getItems().add(preferences);
 
         ScrollPane dataView = new ScrollPane();
+        dataView.setHbarPolicy(ScrollPane.ScrollBarPolicy.ALWAYS);
         dataView.setPadding(new Insets(20));
         VBox controls = new VBox(20);
 
         controls.setPadding(new Insets(20));
-        controls.setPrefSize(300, 600);
-        dataView.setMinViewportWidth(700);
+        controls.setMaxWidth(200);
 
         borderPane.setRight(dataView);
         borderPane.setLeft(controls);
@@ -104,13 +90,17 @@ public class Window {
         Button reset = new Button("Reset");
         Button show = new Button("Show");
         Button toHTML = new Button("Convert to HTML");
-        setToHTML(toHTML);
+        try{
+            setToHTML(toHTML);
+        }catch (RuntimeException runtimeException){
+            System.out.println(runtimeException.getMessage());
+        }
         Button toXML = new Button("Convert to XML");
         setToXML(toXML);
 
         show.setOnAction(e -> updateDataView(dataView));
 
-        reset.setOnAction(e -> resetSetOnAction());
+        reset.setOnAction(e -> resetSetOnAction(borderPane));
 
         /*
           For Class scene
@@ -137,26 +127,27 @@ public class Window {
         setChooseDegree(chooseDegree);
 
         controls.getChildren().add(sceneControl);
-        switch (currentState){
-            case CLASSES ->{
-                controls.getChildren().add(daysAccessible);
-                for(CheckBox checkBox : days)
-                    controls.getChildren().add(checkBox);
+        if(currentState != null)
+            switch (currentState){
+                case CLASSES ->{
+                    controls.getChildren().add(daysAccessible);
+                    for(CheckBox checkBox : days)
+                        controls.getChildren().add(checkBox);
+                }
+                case LECTURERS -> controls.getChildren().addAll(chooseFieldsOfStudyText, chooseFieldsOfStudy,
+                        chooseDegreeText, chooseDegree);
+                case PRACTICANTS -> controls.getChildren().addAll(chooseFieldsOfStudyText, chooseFieldsOfStudy,
+                        chooseDegreeText, chooseDegree);
             }
-            case LECTURERS -> controls.getChildren().addAll(chooseFieldsOfStudyText, chooseFieldsOfStudy,
-                    chooseDegreeText, chooseDegree);
-            case PRACTICANTS -> controls.getChildren().addAll(chooseFieldsOfStudyText, chooseFieldsOfStudy,
-                    chooseDegreeText, chooseDegree);
-        }
 
         controls.getChildren().addAll(reset, show, toHTML, toXML);
     }
     private static void setOnChoosingDay(CheckBox checkBox, String dayName){
         checkBox.selectedProperty().addListener((observableValue, aBoolean, t1) -> {
             if(t1)
-                currentSetting.daysOpen.add(dayName);
+                currentSetting.getDaysOpen().add(dayName);
             else
-                currentSetting.daysOpen.remove(dayName);
+                currentSetting.getDaysOpen().remove(dayName);
         });
     }
 
@@ -194,6 +185,8 @@ public class Window {
         toHTML.setOnAction(actionEvent -> {
             //TODO: Add catching exception on the first steps of
             loadChanges();
+            if(currentState == null || currentState == State.DEFAULT)
+                return;
 
             String settingParser = switch (currentState){
                 case CLASSES -> "classes";
@@ -218,9 +211,15 @@ public class Window {
                 }
             }
 
-            ConverterToHTML converterToHTML = (currentSetting.converter.equals("KI HTML Converter") ?
+            ConverterToHTML converterToHTML = (currentSetting.getConverter().equals("KI HTML Converter") ?
                     new ToHTMLConverter() : new CustomToHTMLConverter());
             convertToHTML(converterToHTML, result, currentState == State.CLASSES ? "classes" : "scientists");
+
+            try {
+                java.awt.Desktop.getDesktop().browse(URI.create("http://localhost:63342/XMLParser/query.html?_ijt=hrjdlei4qr8o6fmf8jbn91r93p&_ij_reload=RELOAD_ON_SAVE"));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         });
     }
     private static void setChooseDegree(ComboBox<String> comboBox){
@@ -228,14 +227,9 @@ public class Window {
 
         loadChanges();
 
-        String update = switch (currentState){
-            case CLASSES -> "lecturers";
-            case LECTURERS -> "lecturers";
-            case PRACTICANTS -> "practicants";
-            case DEFAULT -> "lecturers";
-        };
+        String update = (currentState == State.LECTURERS ? "lecturers" : "practicants");
 
-        if(currentSetting.parser.equals("SAX"))
+        if(currentSetting.getParser().equals("SAX"))
             scientists = parseSearch(new CustomSAXParser(), update);
         else
             scientists = parseSearch(new CustomDOMParser(), update);
@@ -253,16 +247,16 @@ public class Window {
         }
 
         comboBox.setOnAction(actionEvent -> {
-            currentSetting.degree.clear();
+            currentSetting.getDegree().clear();
             if(!comboBox.getSelectionModel().isSelected(0)){
-                if(!currentSetting.degree.contains(comboBox.getSelectionModel().getSelectedItem()))
-                    currentSetting.degree.add(comboBox.getSelectionModel().getSelectedItem());
+                if(!currentSetting.getDegree().contains(comboBox.getSelectionModel().getSelectedItem()))
+                    currentSetting.getDegree().add(comboBox.getSelectionModel().getSelectedItem());
             }
         });
     }
     private static void setChooseFieldsOfStudy(ComboBox<String> comboBox){
         List<Item> lecturers;
-        if(currentSetting.parser.equals("SAX"))
+        if(currentSetting.getParser().equals("SAX"))
             lecturers = parseSearch(new CustomSAXParser(), "lecturers");
         else
             lecturers = parseSearch(new CustomDOMParser(), "lecturers");
@@ -282,15 +276,17 @@ public class Window {
         }
 
         comboBox.setOnAction(actionEvent -> {
-            currentSetting.fieldsOfStudy.clear();
-            if(!currentSetting.fieldsOfStudy.contains(comboBox.getSelectionModel().getSelectedItem()) &&
+            currentSetting.getFieldsOfStudy().clear();
+            if(!currentSetting.getFieldsOfStudy().contains(comboBox.getSelectionModel().getSelectedItem()) &&
             !comboBox.getSelectionModel().isSelected(0))
-                currentSetting.fieldsOfStudy.add(comboBox.getSelectionModel().getSelectedItem());
+                currentSetting.getFieldsOfStudy().add(comboBox.getSelectionModel().getSelectedItem());
         });
     }
-    private static void resetSetOnAction(){
+    private static void resetSetOnAction(BorderPane pane){
         //TODO: make an adequate reset
-        //currentState = State.DEFAULT;
+        sceneControl.getSelectionModel().clearSelection();
+        currentState = State.DEFAULT;
+        setLayout(pane);
     }
     private static void updateDataView(ScrollPane dataView){
         VBox pane = new VBox(20);
@@ -334,9 +330,9 @@ public class Window {
             FileInputStream fileInputStream = new FileInputStream("src/main/resources/settings.txt");
             Scanner scanner = new Scanner(fileInputStream);
             while (scanner.hasNextLine()){
-                currentSetting.parser = scanner.nextLine();
+                currentSetting.setParser(scanner.nextLine());
                 FONT_SIZE = Integer.parseInt(scanner.nextLine());
-                currentSetting.converter = scanner.nextLine();
+                currentSetting.setConverter(scanner.nextLine());
             }
 
         } catch (FileNotFoundException e) {
@@ -348,7 +344,7 @@ public class Window {
 
         loadChanges();
 
-        if(currentSetting.parser.equals("SAX"))
+        if(currentSetting.getParser().equals("SAX"))
             itemList = parseSearch(new CustomSAXParser(), "lecturers");
         else
             itemList = parseSearch(new CustomDOMParser(), "lecturers");
@@ -361,7 +357,7 @@ public class Window {
 
         loadChanges();
 
-        if(currentSetting.parser.equals("SAX"))
+        if(currentSetting.getParser().equals("SAX"))
             itemList = parseSearch(new CustomSAXParser(), "practicants");
         else
             itemList = parseSearch(new CustomDOMParser(), "practicants");
@@ -373,7 +369,7 @@ public class Window {
 
         loadChanges();
 
-        if(currentSetting.parser.equals("SAX"))
+        if(currentSetting.getParser().equals("SAX"))
             itemList = parseSearch(new CustomSAXParser(), "classes");
         else
             itemList = parseSearch(new CustomDOMParser(), "classes");
@@ -415,7 +411,7 @@ public class Window {
 
         boolean isChoosed = false;
         for (String field : fields){
-            for(String requiredField : currentSetting.fieldsOfStudy)
+            for(String requiredField : currentSetting.getFieldsOfStudy())
                 if(field.equals(requiredField)){
                     isChoosed = true;
                     break;
@@ -423,19 +419,19 @@ public class Window {
         }
 
         boolean isDegree = false;
-        for(String degree : currentSetting.degree)
+        for(String degree : currentSetting.getDegree())
             if (degree.equals(scientist.getDegree())) {
                 isDegree = true;
                 break;
             }
 
-        System.out.println(currentSetting.fieldsOfStudy.size());
-        return (isChoosed || currentSetting.fieldsOfStudy.size() == 0) && (isDegree || currentSetting.degree.size() == 0);
+        System.out.println(currentSetting.getFieldsOfStudy().size());
+        return (isChoosed || currentSetting.getFieldsOfStudy().size() == 0) && (isDegree || currentSetting.getDegree().size() == 0);
     }
     private static boolean validateClass(StudyClass studyClass){
         String[] days = studyClass.getDaysWork().replace(" ", "").split(",");
         boolean isOpen = false;
-        for(String requiredDays : currentSetting.daysOpen){
+        for(String requiredDays : currentSetting.getDaysOpen()){
             for (String day : days)
                 if (requiredDays.equals(day)) {
                     isOpen = true;
@@ -444,7 +440,7 @@ public class Window {
         }
 
 
-        return isOpen || currentSetting.daysOpen.size() == 0;
+        return isOpen || currentSetting.getDaysOpen().size() == 0;
     }
     private static List<Item> parseSearch(Parser parser, String expression){
         try {

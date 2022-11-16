@@ -90,6 +90,10 @@ public class ToXMLParser {
             classPracticants.setTextContent(studyClass.listOfPracticantsToString());
             studyClassElement.appendChild(classPracticants);
 
+            Element days = parsedXML.createElement("days");
+            days.setTextContent(studyClass.getDaysWork());
+            studyClassElement.appendChild(days);
+
             classes.appendChild(studyClassElement);
         }
 
